@@ -33,7 +33,8 @@ namespace global{
 void load_and_init_robot()
 {
   std::cout<<"INIT Robot"<<std::endl;
-  global::global_robot = std::make_shared<robot_dart::Robot>("exp/example_dart_exp/ressources/hexapod_v2.urdf");
+  global::global_robot = std::make_shared<robot_dart::Robot>("exp/exp_dart_test/ressources/hexapod_v2.urdf");
+//  global::global_robot = std::make_shared<robot_dart::Robot>("exp/ressources/hexapod_v2.urdf");
   global::global_robot->set_position_enforced(true);
   //global::global_robot->set_position_enforced(true);
   //global_robot->skeleton()->setPosition(1,100* M_PI / 2.0);
@@ -55,10 +56,15 @@ public:
   template<typename Indiv>
     void eval(Indiv& ind)
   {
-
+    //std::cout << "EVAL" << std::endl;
     //INITIALISATION
     Eigen::Vector3d target;
-    target = {8.0, 0.0,0.0}; 
+    //target = {8.0, 0.0,0.0}; 
+
+    std::vector<double> targ;
+    targ = ind.gen().get_target();
+
+    target = {targ[0], targ[1], 0.0};	
 
     simulate(target, ind); //simulate robot behavior for given nn (ind) and target
 
@@ -84,17 +90,23 @@ public:
   template<typename Model>
   void simulate(Eigen::Vector3d& target, Model& model) 
   {
+
+    //std::cout << "SIMU" << std::endl;
     auto g_robot=global::global_robot->clone();
     g_robot->skeleton()->setPosition(5, 0.15);
 
+
+    //std::cout << "debug 0" << std::endl;
     double ctrl_dt = 0.015;
     g_robot->add_controller(std::make_shared<robot_dart::control::HexaControlNN<Model>>());
+//std::cout << "debug 1" << std::endl;
     std::static_pointer_cast<robot_dart::control::HexaControlNN<Model>>(g_robot->controllers()[0])->set_h_params(std::vector<double>(1, ctrl_dt));
-
+//std::cout << "debug 2" << std::endl;
     std::static_pointer_cast<robot_dart::control::HexaControlNN<Model>>(g_robot->controllers()[0])->setModel(model); //TODO : understand why do we use a static pointer cast
+//std::cout << "debug 3" << std::endl;
     std::static_pointer_cast<robot_dart::control::HexaControlNN<Model>>(g_robot->controllers()[0])->setTarget(target);
 
-    
+    //std::cout << "launch simu" << std::endl;    
     robot_dart::RobotDARTSimu simu(0.005); //creation d'une simulation
 
 #ifdef GRAPHIC
@@ -107,7 +119,7 @@ public:
 
     simu.add_descriptor(std::make_shared<robot_dart::descriptor::HexaDescriptor>(robot_dart::descriptor::HexaDescriptor(simu)));
   
-    simu.run(5);
+    simu.run(3);
 
     g_robot.reset();
 
@@ -117,36 +129,42 @@ public:
 
   std::vector<double> get_fit_bd(std::vector<Eigen::VectorXf> & traj, Eigen::Vector3d & target)
   {
-
+	
+    //std::cout << "fit and bd" << std::endl;
     int size = traj.size();
     double dist = 0;
     std::vector<double> zone_exp(3);
     std::vector<double> res(3);
     std::vector<double> results(4);
-
+	
     Eigen::VectorXf pos_init = traj[0];
-
+    //std::cout << "init done" << std::endl;
 
     for (int i = 0; i < size; i++)
       {
+        //std::cout << "fit" << std::endl;
         if (sqrt((target[0]-_traj.back()[0])*(target[0]-_traj.back()[0]) + (target[1]-_traj.back()[1])*(target[1]-_traj.back()[1])) < 0.02){
           dist -= sqrt((target[0]-_traj.back()[0])*(target[0]-_traj.back()[0]) + (target[1]-_traj.back()[1])*(target[1]-_traj.back()[1]));}
 
         else {
           dist -= (log(1+i)) + sqrt((target[0]-_traj.back()[0])*(target[0]-_traj.back()[0]) + (target[1]-_traj.back()[1])*(target[1]-_traj.back()[1]));}
-
+        
+	//std::cout << "bd" << std::endl;
         res = get_zone(pos_init, target, traj[i]); //TODO : check if get zone accepts vector with different sizes
         zone_exp[0] = zone_exp[0] + res[0];
         zone_exp[1] = zone_exp[1] + res[1];
         zone_exp[2] = zone_exp[2] + res[2];
       }
-
+    
+    //std::cout << "fit 1" << std::endl;
     if (sqrt((target[0]-_traj.back()[0])*(target[0]-_traj.back()[0]) + (target[1]-_traj.back()[1])*(target[1]-_traj.back()[1])) < 0.05){
           dist = 1.0 + dist/500;} // -> 1 (TODO : check division by 500)
 
     else {
           dist = dist/500; // -> 0
         }
+    //std::cout << "fit 2" << std::endl;
+
 
     int sum_zones = zone_exp[0] + zone_exp[1] + zone_exp[2];
 
@@ -158,7 +176,7 @@ public:
     return results;
   }
 
-  std::vector<double> get_zone(Eigen::Vector3d start, Eigen::Vector3d target, Eigen::Vector3d pos){
+  std::vector<double> get_zone(Eigen::VectorXf start, Eigen::Vector3d target, Eigen::VectorXf pos){
       
       
       std::vector<double> desc_add (3);
@@ -171,10 +189,14 @@ public:
       std::vector<double> distances (3);
       distances = {0,0,0};
       
-      distances[0] = sqrt(square(start.array() - pos.array()).sum()); //R1 (cf sketch on page 3)
-      distances[1] = sqrt(square(target.array() - pos.array()).sum()); //R2
-      distances[2] = sqrt(square(middle.array() - pos.array()).sum()); //d
-      
+//std::cout << "get zone 1" << std::endl;
+//      distances[0] = sqrt(square(start.array() - pos.array()).sum()); //R1 (cf sketch on page 3)
+      distances[0] = sqrt((start[0] - pos[0])*(start[0] - pos[0]) + (start[1] - pos[1])*(start[1] - pos[1]));
+//      distances[1] = sqrt(square(target.array() - pos.array()).sum()); //R2
+      distances[1] = sqrt((target[0] - pos[0])*(target[0] - pos[0]) + (target[1] - pos[1])*(target[1] - pos[1]));
+//      distances[2] = sqrt(square(middle.array() - pos.array()).sum()); //d
+      distances[1] = sqrt((middle[0] - pos[0])*(middle[0] - pos[0]) + (middle[1] - pos[1])*(middle[1] - pos[1])); 
+//std::cout << "get zone 2" << std::endl;
       double D;
       D = *std::min_element(distances.begin(), distances.end()); //get minimal distance
       

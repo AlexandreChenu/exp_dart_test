@@ -1,9 +1,9 @@
 #ifndef ROBOT_DART_CONTROL_HEXA_CONTROL_NN
 #define ROBOT_DART_CONTROL_HEXA_CONTROL_NN
 
-#include <hexapod_controller/hexapod_controller_simple.hpp>
-
-#include <robot_dart/control/policy_control.hpp>
+//#include <hexapod_controller/hexapod_controller_simple.hpp>
+#include "hexapod_controller_simple.hpp"
+#include "policy_control.hpp"
 
 #include <modules/nn2/mlp.hpp>
 #include <modules/nn2/gen_dnn.hpp>
@@ -68,7 +68,7 @@ namespace robot_dart {
 
             std::vector<double> get_angles(const std::shared_ptr<robot_dart::Robot>& robot)
             {
-                double p_max = 15.0;
+		double p_max = 15.0;
                 int n_Dof = 12;
                 //Eigen::VectorXd commands = Eigen::VectorXd::Zero(18);
 
@@ -81,7 +81,7 @@ namespace robot_dart {
 
                 Eigen::VectorXd prev_commands_full = robot->skeleton()->getCommands(); //get previous command -> TODO : check, it might be of size 24
                 
-                std::cout << "test local - size de la précédente commande : " << prev_commands_full.size() << std::endl;
+//                std::cout << "test local - size de la précédente commande : " << prev_commands_full.size() << std::endl;
                 
                 std::vector<double> prev_commands;
                 for (int i = 1; i < 19; i++){ 
@@ -89,7 +89,7 @@ namespace robot_dart {
                         prev_commands.push_back(prev_commands_full[5 + i]);} //we don't consider dof 3 TODO : check order of commands 
                 }
 
-                std::cout << "test unitaire - size de la commande récupérée (= 12?) : " << prev_commands.size() << std::endl;
+//                std::cout << "test unitaire - size de la commande récupérée (= 12?) : " << prev_commands.size() << std::endl;
 
                 for (int i = 0; i < n_Dof ; i++){
                     inputs[2 + i] = prev_commands[i]; //TODO : get current angles
@@ -102,13 +102,13 @@ namespace robot_dart {
                     inputs[2 + n_Dof + i] = angles[i]; // yaw / pitch / roll
                 }
 
-                _model->gen().init();
-                for (int j = 0; j < _model->gen().get_depth() + 1; ++j)
-                    _model->gen().step(inputs); 
+                _model.gen().init();
+                for (int j = 0; j < _model.gen().get_depth() + 1; ++j)
+                    _model.gen().step(inputs); 
 
                 Eigen::VectorXd out_nn(12);
                 for (int indx = 0; indx < n_Dof; indx ++ ){
-                    out_nn[indx] = 2*(_model->nn().get_outf(indx) - 0.5)*p_max; //TODO : check if p_max is well adjusted
+                    out_nn[indx] = 2*(_model.nn().get_outf(indx) - 0.5)*p_max; //TODO : check if p_max is well adjusted
                 }
 
                 std::vector<double> commands_out;
@@ -123,13 +123,13 @@ namespace robot_dart {
                         }
                     }
 
-                std::cout << "test unitaire - size de la commande en sortie format std vector(=18?) : " << commands_out.size() << std::endl;
+  //              std::cout << "test unitaire - size de la commande en sortie format std vector(=18?) : " << commands_out.size() << std::endl;
 
-                Eigen::VectorXd commands(commands_out.data());
+                //Eigen::VectorXd commands(commands_out.data());
 
-                std::cout << "test unitaire - size de la commande en sortie format eigen vector (=18?) : " << commands.size() << std::endl;
+                //std::cout << "test unitaire - size de la commande en sortie format eigen vector (=18?) : " << commands.size() << std::endl;
                 
-                return commands;}
+                return commands_out;}
 
             
 
