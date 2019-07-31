@@ -63,7 +63,7 @@ public:
     simulate(target, ind); //simulate robot behavior for given nn (ind) and target
 
     std::vector<double> res(4);
-    res = get_fit_bd(_traj);
+    res = get_fit_bd(_traj, target);
 
     this->_value = res[0]; //save fitness value
     

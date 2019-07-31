@@ -137,8 +137,8 @@ namespace robot_dart {
             hexapod_controller::HexapodControllerSimple _controller;
             double _dt;
             bool _h_params_set = false;
-            Indiv & _model; 
-            Eigen::Vector3d & _target;
+            Indiv _model; 
+            Eigen::Vector3d _target;
 
 
         };
