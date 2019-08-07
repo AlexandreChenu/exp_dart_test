@@ -75,7 +75,7 @@ using namespace sferes::gen::dnn;
 struct Params {
     struct nov {
         SFERES_CONST size_t deep = 3;
-        SFERES_CONST double l = 0.01; // TODO value ???
+        SFERES_CONST double l = 0.5; // according to hand tuning made on the 2D arm simulation
         SFERES_CONST double k = 15; // TODO right value?
         SFERES_CONST double eps = 0.1;// TODO right value??
     };
