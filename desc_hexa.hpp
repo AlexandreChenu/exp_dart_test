@@ -12,7 +12,7 @@ namespace robot_dart {
 
       struct HexaDescriptor:public BaseDescriptor{
         public:
-	HexaDescriptor(RobotDARTSimu& simu, size_t desc_dump = 100):BaseDescriptor(simu,desc_dump)
+	HexaDescriptor(RobotDARTSimu& simu, size_t desc_dump = 1):BaseDescriptor(simu,desc_dump)
 	{}
 	std::vector<Eigen::VectorXf> traj;
 	virtual void operator()()

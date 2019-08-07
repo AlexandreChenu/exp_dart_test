@@ -76,7 +76,10 @@ namespace robot_dart {
 
                 //auto pos?
                 auto pos= robot->skeleton()->getPositions().head(6).tail(3).cast <float> (); //obtain robot's position
-                inputs[0] = pos[0] - _target[0];
+//                std::cout << "position x: " << pos[0] << std::endl;
+//	        std::cout << "position y: " << pos[1] << std::endl;
+
+		inputs[0] = pos[0] - _target[0];
                 inputs[1] = pos[1] - _target[1];
 
                 Eigen::VectorXd prev_commands_full = robot->skeleton()->getCommands(); //get previous command -> TODO : check, it might be of size 24

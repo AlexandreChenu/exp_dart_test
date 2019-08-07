@@ -125,7 +125,7 @@ struct Params {
     };
     struct qd {
         SFERES_CONST size_t dim = 2;
-        SFERES_CONST size_t behav_dim = 3; //position finale encore
+        SFERES_CONST size_t behav_dim = 5; //zones + target
         SFERES_ARRAY(size_t, grid_shape, 100, 100);
     };
 };
