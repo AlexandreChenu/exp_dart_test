@@ -144,7 +144,8 @@ struct Params {
 
 
 int main(int argc, char **argv) 
-{
+{   
+    tbb::task_scheduler_init init(20);
 
     load_and_init_robot();
 
