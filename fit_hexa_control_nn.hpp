@@ -203,12 +203,12 @@ public:
       distances = {0,0,0};
       
 //std::cout << "get zone 1" << std::endl;
-//      distances[0] = sqrt(square(start.array() - pos.array()).sum()); //R1 (cf sketch on page 3)
+
       distances[0] = sqrt((start[0] - pos[0])*(start[0] - pos[0]) + (start[1] - pos[1])*(start[1] - pos[1]));
-//      distances[1] = sqrt(square(target.array() - pos.array()).sum()); //R2
+
       distances[1] = sqrt((target[0] - pos[0])*(target[0] - pos[0]) + (target[1] - pos[1])*(target[1] - pos[1]));
-//      distances[2] = sqrt(square(middle.array() - pos.array()).sum()); //d
-      distances[1] = sqrt((middle[0] - pos[0])*(middle[0] - pos[0]) + (middle[1] - pos[1])*(middle[1] - pos[1])); 
+
+      distances[2] = sqrt((middle[0] - pos[0])*(middle[0] - pos[0]) + (middle[1] - pos[1])*(middle[1] - pos[1])); 
 //std::cout << "get zone 2" << std::endl;
       double D;
       D = *std::min_element(distances.begin(), distances.end()); //get minimal distance
