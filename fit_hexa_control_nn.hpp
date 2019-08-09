@@ -171,20 +171,25 @@ public:
     
     //std::cout << "fit 1" << std::endl;
     if (sqrt((target[0]-_traj.back()[0])*(target[0]-_traj.back()[0]) + (target[1]-_traj.back()[1])*(target[1]-_traj.back()[1])) < 0.05){
-          dist = 1.0 + dist/2000;} // -> 1 (TODO : check division by 500)
+          dist = 1.0 + dist/10000;} // -> 1 (TODO : check division by 500)
 
     else {
-          dist = dist/2000; // -> 0
+          dist = dist/10000; // -> 0
         }
     //std::cout << "fit 2" << std::endl;
 
 
-    int sum_zones = zone_exp[0] + zone_exp[1] + zone_exp[2];
+    //int sum_zones = abs(zone_exp[0]) + abs(zone_exp[1]) + abs(zone_exp[2]);
+    int sum_zones = size; //always the same number of time steps
+	  
+    //std::cout << "sum results: " << sum_zones << std::endl;
 
     results[0] = dist;
     results[1] = zone_exp[0]/sum_zones;
     results[2] = zone_exp[1]/sum_zones;
     results[3] = zone_exp[2]/sum_zones;
+	  
+    //std::cout << "final results: " << results[0] << " - " << results[1] << " - " << results[2] << " - " << results[3] << std::endl;
 
     return results;
   }
@@ -208,20 +213,23 @@ public:
 
       distances[1] = sqrt((target[0] - pos[0])*(target[0] - pos[0]) + (target[1] - pos[1])*(target[1] - pos[1]));
 
-      distances[2] = sqrt((middle[0] - pos[0])*(middle[0] - pos[0]) + (middle[1] - pos[1])*(middle[1] - pos[1])); 
-//std::cout << "get zone 2" << std::endl;
-      double D;
-      D = *std::min_element(distances.begin(), distances.end()); //get minimal distance
+      distances[2] = sqrt((middle[0] - start[0])*(middle[0] - start[0]) + (middle[1] - start[1])*(middle[1] - start[1])); 
+
       
       Eigen::Vector3d vO2_M_R0; //vector 02M in frame R0; (cf sketch on page 4)
-      //vO2_M_R0[0] = pos[0] - start[0];
-      vO2_M_R0[0] = pos[0];
-      //vO2_M_R0[1] = pos[1] - start[1];
-      vO2_M_R0[1] = pos[1];
+      vO2_M_R0[0] = pos[0] - start[0];
+      //vO2_M_R0[0] = pos[0];
+      vO2_M_R0[1] = pos[1] - start[1];
+      //vO2_M_R0[1] = pos[1];
       vO2_M_R0[2] = 1;
+	  
+      Eigen::Vector3d vMid_M_R0; //vector Middle_M in frame R0;
+      vMid_M_R0[0] = pos[0] - middle[0];
+      vMid_M_R0[1] = pos[1] - middle[1];
+      vMid_M_R0[2] = 1;
       
-      Eigen::Matrix3d T; //translation matrix
-      T << 1,0,-start[0],0,1,-start[1],0,0,1; //translation matrix
+      //Eigen::Matrix3d T; //translation matrix
+      //T << 1,0,-start[0],0,1,-start[1],0,0,1; //translation matrix
       
       Eigen::Vector3d vO2_T;
       vO2_T[0] = target[0] - start[0];
@@ -241,15 +249,18 @@ public:
       R << cos(theta), sin(theta), 0, -sin(theta), cos(theta), 0, 0, 0, 1; //rotation matrix
       
       Eigen::Vector3d vO2_M_R1; //vector 02M in frame R1;
-      vO2_M_R1 = T*vO2_M_R0;  
-      vO2_M_R1 = R*vO2_M_R1;
+      //vO2_M_R1 = T*vO2_M_R0;  
+      vO2_M_R1 = R*vO2_M_R0;
+	  
+      Eigen::Vector3d vMid_M_R1; //vector Middle_M in frame R1;
+      vMid_M_R1 = R*vMid_M_R0;
       
       
       if (vO2_M_R1[0] < 0){ //negative zone (cf sketch on page 3)
-          if (D < 0.1) {
+          if (distances[0] < 0.1 || distances[1] < 0.1 || (abs(vMid_M_R1[0]) < 0.1 && abs(vMid_M_R1[1]) < distances[2])) {
               return {-1, 0, 0};
           }
-          if (D >= 0.1 && D < 0.2){
+          if ((distances[0] < 0.2 || distances[1] < 0.2 || (abs(vMid_M_R1[0]) < 0.2 && abs(vMid_M_R1[1]) < distances[2])) && (distances[0] >= 0.1 || distances[1] >= 0.1 || (abs(vMid_M_R1[0]) >= 0.1 && abs(vMid_M_R1[1]) < distances[2]))){
               return {0, -1, 0};
           }
           else {
@@ -258,10 +269,10 @@ public:
       }
       
       else{ //positive zone
-          if (D < 0.1) {
+          if (distances[0] < 0.1 || distances[1] < 0.1 || (abs(vMid_M_R1[0]) < 0.1 && abs(vMid_M_R1[1]) < distances[2])) {
               return {1, 0, 0};
           }
-          if (D >= 0.1 && D < 0.2){
+          if ((distances[0] < 0.2 || distances[1] < 0.2 || (abs(vMid_M_R1[0]) < 0.2 && abs(vMid_M_R1[1]) < distances[2])) && (distances[0] >= 0.1 || distances[1] >= 0.1 || (abs(vMid_M_R1[0]) >= 0.1 && abs(vMid_M_R1[1]) < distances[2]))){
               return {0, 1, 0};
           }
           else {
