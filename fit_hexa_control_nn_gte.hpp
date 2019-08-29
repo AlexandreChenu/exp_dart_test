@@ -33,7 +33,7 @@ namespace global{
 void load_and_init_robot()
 {
   std::cout<<"INIT Robot"<<std::endl;
-  global::global_robot = std::make_shared<robot_dart::Robot>("exp/exp_dart_simple/ressources/hexapod_v2.urdf");
+  global::global_robot = std::make_shared<robot_dart::Robot>("exp/exp_dart_test/ressources/hexapod_v2.urdf");
   //global::global_robot = std::make_shared<robot_dart::Robot>("exp/ressources/hexapod_v2.urdf");
   global::global_robot->set_position_enforced(true);
   //global::global_robot->set_position_enforced(true);
@@ -56,66 +56,69 @@ public:
   template<typename Indiv>
     void eval(Indiv& ind)
   {
+    //std::cout << "EVAL" << std::endl;
     //INITIALISATION
     Eigen::Vector3d target;
     //target = {8.0, 0.0,0.0}; 
-    _body_contact = false;
-    _on_back = false;
-    double _arrival_angle = 0;
 
-    //target = {1, 0.5 ,0.0};	
-    
     std::vector<double> targ;
     targ = ind.gen().get_target();
 
-    target = {targ[0], targ[1], 0.0};   
+    target = {targ[0], targ[1], 0.0};	
+   
+    //std::cout << "target : " << target << std::endl;
 
     simulate(target, ind); //simulate robot behavior for given nn (ind) and target
 
     std::vector<double> res(4);
     res = get_fit_bd(_traj, target);
 
+    this->_value = res[0]; //save fitness value
+    
+    //std::cout << "fitness : " << res[0] << std::endl;
 
     // descriptor is the final position of the robot. 
-    std::vector<double> desc(3);
+    std::vector<double> desc(5);
  
     desc[0] = res[1];
     desc[1] = res[2];
     desc[2] = res[3];
-	 
-	this ->_value = res[0];	  
+    desc[3] = targ[0];
+    desc[4] = targ[1];
+
     this->set_desc(desc); //save behavior descriptor
 
-    if(_body_contact || _on_back){
+    //std::cout << "behavior descriptor : " << res[1] << " : " << res[2] << " : " << res[3] << std::endl;
 
-     std::cout << "body contact is " << _body_contact << " and on back is " << _on_back << std::endl; 
-	this->_dead=true; //if something is wrong, we kill this solution.
-   } 
-    else{
-	_not_dead ++;}
-
+    //if(desc[0]<0 || desc[0]>1 ||desc[1]<0 || desc[1]>1)
+    //  this->_dead=true; //if something is wrong, we kill this solution. 
+    
   }
   
   template<typename Model>
   void simulate(Eigen::Vector3d& target, Model& model) 
   {
 
+    //std::cout << "SIMU" << std::endl;
     auto g_robot=global::global_robot->clone();
     g_robot->skeleton()->setPosition(5, 0.15);
 
 
+    //std::cout << "debug 0" << std::endl;
     double ctrl_dt = 0.015;
     g_robot->add_controller(std::make_shared<robot_dart::control::HexaControlNN<Model>>());
-    //std::static_pointer_cast<robot_dart::control::HexaControlNN<Model>>(g_robot->controllers()[0])->set_h_params(std::vector<double>(1, ctrl_dt));
-
+//std::cout << "debug 1" << std::endl;
+    std::static_pointer_cast<robot_dart::control::HexaControlNN<Model>>(g_robot->controllers()[0])->set_h_params(std::vector<double>(1, ctrl_dt));
+//std::cout << "debug 2" << std::endl;
     std::static_pointer_cast<robot_dart::control::HexaControlNN<Model>>(g_robot->controllers()[0])->setModel(model); //TODO : understand why do we use a static pointer cast
-
+//std::cout << "debug 3" << std::endl;
     std::static_pointer_cast<robot_dart::control::HexaControlNN<Model>>(g_robot->controllers()[0])->setTarget(target);
-  
+
+    //std::cout << "launch simu" << std::endl;    
     robot_dart::RobotDARTSimu simu(0.005); //creation d'une simulation
 
 #ifdef GRAPHIC
-    simu.set_graphics(std::make_shared<robot_dart::graphics::Graphics>(simu.world(), 640, 480, false));
+    simu.set_graphics(std::make_shared<robot_dart::graphics::Graphics>(simu.world()));
 #endif
 
     simu.world()->getConstraintSolver()->setCollisionDetector(dart::collision::BulletCollisionDetector::create());
@@ -123,23 +126,22 @@ public:
     simu.add_robot(g_robot);
 
     simu.add_descriptor(std::make_shared<robot_dart::descriptor::HexaDescriptor>(robot_dart::descriptor::HexaDescriptor(simu)));
-    simu.add_descriptor(std::make_shared<robot_dart::descriptor::DutyCycle>(robot_dart::descriptor::DutyCycle(simu)));
-    
-    simu.run(10);
+  
+    simu.run(5);
 
-    _body_contact = std::static_pointer_cast<robot_dart::descriptor::DutyCycle>(simu.descriptor(1))->body_contact(); //should be descriptor 1
-    _traj = std::static_pointer_cast<robot_dart::descriptor::HexaDescriptor>(simu.descriptor(0))->traj;
-    _on_back = std::static_pointer_cast<robot_dart::descriptor::HexaDescriptor>(simu.descriptor(0))->on_back();
     g_robot.reset();
 
-     }
+    _traj=std::static_pointer_cast<robot_dart::descriptor::HexaDescriptor>(simu.descriptor(0))->traj;
+  }
 
 
   std::vector<double> get_fit_bd(std::vector<Eigen::VectorXf> & traj, Eigen::Vector3d & target)
   {
 	
+    //std::cout << "fit and bd" << std::endl;
     int size = traj.size();
   
+    //std::cout << "traj size: " << size << std::endl;
 
     double dist = 0;
     std::vector<double> zone_exp(3);
@@ -283,9 +285,8 @@ public:
 private:
   std::vector<double> _ctrl;
   std::vector<Eigen::VectorXf> _traj;
-  bool _body_contact;
-  int _not_dead = 0;
-  bool _on_back; 
+
+  
 };
 
 

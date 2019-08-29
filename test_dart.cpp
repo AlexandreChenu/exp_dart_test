@@ -75,7 +75,7 @@ using namespace sferes::gen::dnn;
 struct Params {
     struct nov {
         SFERES_CONST size_t deep = 3;
-        SFERES_CONST double l = 0.5; // according to hand tuning made on the 2D arm simulation
+        SFERES_CONST double l = 1; // according to hand tuning made on the 2D arm simulation
         SFERES_CONST double k = 15; // TODO right value?
         SFERES_CONST double eps = 0.1;// TODO right value??
     };
@@ -83,20 +83,20 @@ struct Params {
     // TODO: move to a qd::
     struct pop {
         // number of initial random points
-        SFERES_CONST size_t init_size = 500;
+        SFERES_CONST size_t init_size = 1000;
         // size of a batch
         SFERES_CONST size_t size = 100;
-        SFERES_CONST size_t nb_gen = 15001;
+        SFERES_CONST size_t nb_gen = 25001;
         SFERES_CONST size_t dump_period = 500;
     };
 
     struct dnn {
-        SFERES_CONST size_t nb_inputs = 12 + 2 + 3; //previous commands(12) -> DOF3 = -DOF2 / distance to target / orientation
+        SFERES_CONST size_t nb_inputs = 12 + 2 + 3 + 1; //previous commands(12) -> DOF3 = -DOF2 / distance to target / orientation / time
         SFERES_CONST size_t nb_outputs  = 12; //new commands
-        SFERES_CONST size_t min_nb_neurons  = 41;
-        SFERES_CONST size_t max_nb_neurons  = 100;
-        SFERES_CONST size_t min_nb_conns  = 150;
-        SFERES_CONST size_t max_nb_conns  = 300;
+        SFERES_CONST size_t min_nb_neurons  = 4;
+        SFERES_CONST size_t max_nb_neurons  = 35;
+        SFERES_CONST size_t min_nb_conns  = 5;
+        SFERES_CONST size_t max_nb_conns  = 40;
         SFERES_CONST float  max_weight  = 2.0f;
         SFERES_CONST float  max_bias  = 2.0f;
 
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 //    typedef eval::Eval<Params> eval_t;
 
     typedef boost::fusion::vector<
-        stat::BestFitNN<phen_t, Params>, 
+        stat::BestFitAll<phen_t, Params>, //to change for something similar to BestFitSamp
         stat::QdContainer<phen_t, Params>, 
         stat::QdProgress<phen_t, Params>, 
         stat::QdSelection<phen_t, Params>>
