@@ -65,8 +65,9 @@
 #include <cstdlib>
 
 
-#include "fit_hexa_control_nn.hpp"
-#include "best_fit_nn.hpp"
+//#include "fit_hexa_control_nn.hpp"
+//#include "best_fit_nn.hpp"
+#include "best_fit_all.hpp"
 
 using namespace sferes;
 using namespace sferes::gen::evo_float;
@@ -75,7 +76,7 @@ using namespace sferes::gen::dnn;
 struct Params {
     struct nov {
         SFERES_CONST size_t deep = 3;
-        SFERES_CONST double l = 1; // according to hand tuning made on the 2D arm simulation
+        SFERES_CONST double l = 0.5; // according to hand tuning made on the 2D arm simulation
         SFERES_CONST double k = 15; // TODO right value?
         SFERES_CONST double eps = 0.1;// TODO right value??
     };
@@ -86,8 +87,8 @@ struct Params {
         SFERES_CONST size_t init_size = 1000;
         // size of a batch
         SFERES_CONST size_t size = 100;
-        SFERES_CONST size_t nb_gen = 25001;
-        SFERES_CONST size_t dump_period = 500;
+        SFERES_CONST size_t nb_gen = 5001;
+        SFERES_CONST size_t dump_period = 100;
     };
 
     struct dnn {
@@ -124,8 +125,8 @@ struct Params {
         SFERES_CONST cross_over_t cross_over_type = sbx;
     };
     struct qd {
-        SFERES_CONST size_t dim = 2;
-        SFERES_CONST size_t behav_dim = 5; //zones + target
+        SFERES_CONST size_t dim = 3;
+        SFERES_CONST size_t behav_dim = 2; //zones + target
         SFERES_ARRAY(size_t, grid_shape, 100, 100);
     };
 };
@@ -145,7 +146,7 @@ struct Params {
 
 int main(int argc, char **argv) 
 {   
-    tbb::task_scheduler_init init(48);
+    tbb::task_scheduler_init init(20);
 
     load_and_init_robot();
 

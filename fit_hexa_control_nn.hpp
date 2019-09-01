@@ -77,12 +77,17 @@ public:
 
 
     // descriptor is the final position of the robot. 
-    std::vector<double> desc(3);
+    std::vector<double> desc(2);
  
-    desc[0] = res[1];
-    desc[1] = res[2];
-    desc[2] = res[3];
-	 
+    //desc[0] = res[1];
+    //desc[1] = res[2];
+    //desc[2] = res[3];
+    //desc[3] = target[0];
+    //desc[4] = target[1];
+
+    desc[0] = target[0];
+    desc[1] = target[1];
+
 	this ->_value = res[0];	  
     this->set_desc(desc); //save behavior descriptor
 
@@ -161,10 +166,10 @@ public:
           dist -= (log(1+i)) + sqrt((target[0]-_traj[i][0])*(target[0]-_traj[i][0]) + (target[1]-_traj[i][1])*(target[1]-_traj[i][1]));}
         
 	//std::cout << "bd" << std::endl;
-        res = get_zone(pos_init, target, traj[i]); //TODO : check if get zone accepts vector with different sizes
-        zone_exp[0] = zone_exp[0] + res[0];
-        zone_exp[1] = zone_exp[1] + res[1];
-        zone_exp[2] = zone_exp[2] + res[2];
+        //res = get_zone(pos_init, target, traj[i]); //TODO : check if get zone accepts vector with different sizes
+        //zone_exp[0] = zone_exp[0] + res[0];
+        //zone_exp[1] = zone_exp[1] + res[1];
+        //zone_exp[2] = zone_exp[2] + res[2];
       }
     
     //std::cout << "fit 1" << std::endl;
@@ -183,10 +188,14 @@ public:
     //std::cout << "sum results: " << sum_zones << std::endl;
 
     results[0] = dist;
-    results[1] = zone_exp[0]/sum_zones;
-    results[2] = zone_exp[1]/sum_zones;
-    results[3] = zone_exp[2]/sum_zones;
-	  
+    //results[1] = zone_exp[0]/sum_zones;
+    //results[2] = zone_exp[1]/sum_zones;
+    //results[3] = zone_exp[2]/sum_zones;
+	
+    results[1] = 0;
+    results[2] = 0;
+    results[3] = 0;
+
     //std::cout << "final results: " << results[0] << " - " << results[1] << " - " << results[2] << " - " << results[3] << std::endl;
 
     return results;

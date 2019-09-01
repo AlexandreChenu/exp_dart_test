@@ -98,12 +98,12 @@ namespace sferes {
 
         for( auto it = ea.pop().begin(); it != ea.pop().end(); ++it) {
 
-          std::vector<double> results(3);
-          results = test_model(*it); //simulate and obtain fitness and behavior descriptors
+          std::vector<double> results(6);
+          results = test_model(**it); //simulate and obtain fitness and behavior descriptors
 
-          std::cout << "test unitaire - fitness: " << results[0] << " behavior descriptor: " << results[1] << " - " << results[2] << " - " << results[3] << std::endl;
+          std::cout << "test unitaire - fitness: " << results[0] << " behavior descriptor: " << results[1] << " " << results[2] << " " << results[3] << " target: " << results[4] << " " << results[5] << std::endl;
 
-          dict_file << "final_model_" + std::to_string(cnt) << "  " << results[0] << "  " << results[1] << "  " << results[2] << "  " << results[3] << "\n"; //save simulation results in dictionary file
+          dict_file << "final_model_" + std::to_string(cnt) << "  " << results[0] << "  " << results[1] << "  " << results[2] << "  " << results[3] << " " << results[4] << " " << results[5] <<  "\n"; //save simulation results in dictionary file
 
           typedef boost::archive::binary_oarchive oa_t;
           const std::string fmodel = ea.res_dir() + "/final_model_" + std::to_string(cnt) + ".bin";
@@ -128,10 +128,25 @@ namespace sferes {
 
       template<typename T>
       std::vector<double> test_model(T& model){
+		      
+	std::vector<double> targ = model.gen().get_target(); // TODO: test type
+	Eigen::Vector3d target;
+
+	target[0] = targ[0];
+	target[1] = targ[1];
+	target[2] = 0;
 	
-	Eigen::Vector3d target = model.get_target(); // TODO: test type
 	std::vector<double> result(4); //fit / bd 1,2,3
-  	result = simulate(target, model);}
+  	result = simulate(target, model);
+
+	std::vector<double> outputs(6);
+	for (int i = 0; i<result.size(); i++)
+		outputs[i] = result[i];
+
+	outputs[4] = target[0];
+	outputs[5] = target[1];
+
+      	return outputs;}
 
       template<typename Model>
       std::vector<double> simulate(Eigen::Vector3d& target, Model& model)
@@ -167,7 +182,7 @@ namespace sferes {
     //_on_back = std::static_pointer_cast<robot_dart::descriptor::HexaDescriptor>(simu.descriptor(0))->on_back();
     g_robot.reset();
     
-    std::vector<double> results = get_fit_bd(_traj, target);
+    std::vector<double> results = get_fit_bd(traj, target);
 
    return(results);
 
@@ -183,6 +198,8 @@ namespace sferes {
     std::vector<double> zone_exp(3);
     std::vector<double> res(3);
     std::vector<double> results(4);
+
+    std::vector<Eigen::VectorXf> _traj(traj.begin(), traj.end());
 
     Eigen::VectorXf pos_init = traj[0];
     //std::cout << "init done" << std::endl;

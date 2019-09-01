@@ -70,7 +70,7 @@ namespace sferes{
         sferes::gen::DnnFF<N, C, Params>::random();
         //std::cout << "DnnFF random done" <<std::endl;
         //BOOST_FOREACH(double &v, this->_targ) v = misc::rand<double>();
-        double radius = ((double) rand() / (RAND_MAX)); //TODO: adapt to n dimensions
+        double radius = (((double) rand() / (RAND_MAX))-0.5); //TODO: adapt to n dimensions
         double theta = 2*M_PI*(((double) rand() / (RAND_MAX))-0.5);
         //std::cout << "compute rad and theta" << std::endl;
         _targ[0] = radius*cos(theta);
@@ -116,7 +116,7 @@ namespace sferes{
 
     private: 
       
-      double _rad = ((double) rand() / (RAND_MAX));
+      double _rad = ((double) rand() / (RAND_MAX)-0.5);
       double _teta = 2*M_PI*(((double) rand() / (RAND_MAX))-0.5);
       std::vector<double> _targ = {_rad*cos(_teta),_rad*sin(_teta),0};
 
