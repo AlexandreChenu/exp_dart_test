@@ -34,7 +34,7 @@
 
 
 // #include <sferes/gen/evo_float.hpp>
-#include <modules/nn2/gen_dnn_ff.hpp>
+#include <modules/nn2/gen_dnn.hpp>
 #include <iostream>
 #include <cmath>
 
@@ -47,7 +47,7 @@ namespace sferes{
     template<typename N, typename C, typename Params>
     class Dte : 
       //public sferes::gen::EvoFloat <Size, Params, Exact>, 
-      public sferes::gen::DnnFF <N, C, Params> {
+      public sferes::gen::Dnn <N, C, Params> {
       //public EvoFloat <Size, Params, Exact> {
       
 
@@ -61,13 +61,13 @@ namespace sferes{
 
       void init() {
         //std::cout << "START INIT" <<std::endl;
-        sferes::gen::DnnFF<N, C, Params>::init();
+        sferes::gen::Dnn<N, C, Params>::init();
         //std::cout << "END INIT" <<std::endl;
         }
 
       void random() {
         //std::cout << "START RANDOM" <<std::endl;
-        sferes::gen::DnnFF<N, C, Params>::random();
+        sferes::gen::Dnn<N, C, Params>::random();
 
         bool accepted = false;
 
@@ -85,9 +85,9 @@ namespace sferes{
         //std::cout << "END RANDOM" <<std::endl;
       }
 
-      void cross(const sferes::gen::DnnFF<N, C, Params>& o, sferes::gen::DnnFF<N, C, Params>& c1, sferes::gen::DnnFF<N, C, Params>& c2) {
+      void cross(const sferes::gen::Dnn<N, C, Params>& o, sferes::gen::Dnn<N, C, Params>& c1, sferes::gen::Dnn<N, C, Params>& c2) {
         //std::cout << "START CROSS" <<std::endl;
-        sferes::gen::DnnFF<N, C, Params>::cross(o, c1, c2);
+        sferes::gen::Dnn<N, C, Params>::cross(o, c1, c2);
         //std::cout << "END CROSS" <<std::endl;
          //add cross for float
        }
@@ -95,7 +95,7 @@ namespace sferes{
       void mutate() {
          //sferes::gen::EvoFloat<Size, Params, Exact>::mutate();
         //std::cout << "START MUTATE" <<std::endl;
-         sferes::gen::DnnFF<N, C, Params>::mutate();
+         sferes::gen::Dnn<N, C, Params>::mutate();
 
        //   for (int i = 0; i < 2; i++){ //polynomial mutation for target 
        //    if (misc::rand<float>() < Params::evo_float::mutation_rate){
@@ -122,9 +122,9 @@ namespace sferes{
 
     private: 
       
-      double _rad = ((double) rand() / (RAND_MAX)-0.5);
-      double _teta = 2*M_PI*(((double) rand() / (RAND_MAX))-0.5);
-      std::vector<double> _targ = {_rad*cos(_teta),_rad*sin(_teta),0};
+      double _x = ((double) rand() / (RAND_MAX)-0.5);
+      double _y = (((double) rand() / (RAND_MAX))-0.5);
+      std::vector<double> _targ = {_x,_y,0};
 
 
 

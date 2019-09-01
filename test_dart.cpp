@@ -76,7 +76,7 @@ using namespace sferes::gen::dnn;
 struct Params {
     struct nov {
         SFERES_CONST size_t deep = 3;
-        SFERES_CONST double l = 0.5; // according to hand tuning made on the 2D arm simulation
+        SFERES_CONST double l = 0.1; // according to hand tuning made on the 2D arm simulation
         SFERES_CONST double k = 15; // TODO right value?
         SFERES_CONST double eps = 0.1;// TODO right value??
     };
@@ -87,8 +87,8 @@ struct Params {
         SFERES_CONST size_t init_size = 1000;
         // size of a batch
         SFERES_CONST size_t size = 100;
-        SFERES_CONST size_t nb_gen = 5001;
-        SFERES_CONST size_t dump_period = 100;
+        SFERES_CONST size_t nb_gen = 25001;
+        SFERES_CONST size_t dump_period = 500;
     };
 
     struct dnn {
@@ -146,7 +146,7 @@ struct Params {
 
 int main(int argc, char **argv) 
 {   
-    tbb::task_scheduler_init init(20);
+    tbb::task_scheduler_init init(48);
 
     load_and_init_robot();
 

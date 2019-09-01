@@ -11,7 +11,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 
-#include "fit_hexa_control_nn.hpp"
+#include "fit_hexa_control_nn_gte.hpp"
 
 #include <robot_dart/robot_dart_simu.hpp>
 //#include <robot_dart/control/hexa_control.hpp>
@@ -51,6 +51,9 @@ namespace sferes {
 
         //change it to depend from params 
         if (_cnt%Params::pop::dump_period == 0){ //save model
+	   
+
+	  std::cout << "pop size: " << ea.pop().size() << std::endl;
 
           typedef boost::archive::binary_oarchive oa_t;
 
@@ -98,12 +101,12 @@ namespace sferes {
 
         for( auto it = ea.pop().begin(); it != ea.pop().end(); ++it) {
 
-          std::vector<double> results(5);
+          std::vector<double> results(3);
           results = test_model(**it); //simulate and obtain fitness and behavior descriptors
 
-          std::cout << "test unitaire - fitness: " << results[0] << " behavior descriptor: " << results[1] << " " << results[2] << " " << results[3] << " target: " << results[4]  << std::endl;
+          std::cout << "test unitaire - fitness: " << results[0] << " behavior descriptor: " << results[1] << " " << results[2] << std::endl;
 
-          dict_file << "final_model_" + std::to_string(cnt) << "  " << results[0] << "  " << results[1] << "  " << results[2] << "  " << results[3] << " " << results[4]  <<  "\n"; //save simulation results in dictionary file
+          dict_file << "final_model_" + std::to_string(cnt) << "  " << results[0] << "  " << results[1] << "  " << results[2] << "\n"; //save simulation results in dictionary file
 
           typedef boost::archive::binary_oarchive oa_t;
           const std::string fmodel = ea.res_dir() + "/final_model_" + std::to_string(cnt) + ".bin";
@@ -136,15 +139,15 @@ std::vector<double> test_model(T& model){
 	target[1] = targ[1];
 	target[2] = 0;
 	
-	std::vector<double> result(4); //fit / bd 1,2,3
+	std::vector<double> result(3); //fit / bd 1,2,3
   	result = simulate(target, model);
 
-	std::vector<double> outputs(6);
-	for (int i = 0; i<result.size(); i++)
-		outputs[i] = result[i];
-
-	outputs[4] = target[0];
-	outputs[5] = target[1];
+	std::vector<double> outputs(3);
+	//for (int i = 0; i<result.size(); i++)
+	//	outputs[i] = result[i];
+	outputs[0] = result[0];
+	outputs[1] = target[0];
+	outputs[2] = target[1];
 
   return outputs;}
 
@@ -216,9 +219,9 @@ std::vector<double> test_model(T& model){
           dist -= (log(1+i)) + sqrt((target[0]-_traj[i][0])*(target[0]-_traj[i][0]) + (target[1]-_traj[i][1])*(target[1]-_traj[i][1]));}
 
         //std::cout << "bd" << std::endl;
-        res = get_zone(pos_init, target, traj[i]); //TODO : check if get zone accepts vector with different sizes
-        zone_exp[0] = zone_exp[0] + res[0];
-        zone_exp[1] = zone_exp[1] + res[1];
+        //res = get_zone(pos_init, target, traj[i]); //TODO : check if get zone accepts vector with different sizes
+        //zone_exp[0] = zone_exp[0] + res[0];
+        //zone_exp[1] = zone_exp[1] + res[1];
         // zone_exp[2] = zone_exp[2] + res[2];
       }
 //std::cout << "fit 1" << std::endl;
@@ -237,8 +240,10 @@ std::vector<double> test_model(T& model){
     //std::cout << "sum results: " << sum_zones << std::endl;
 
     results[0] = dist;
-    results[1] = zone_exp[0]/sum_zones;
-    results[2] = zone_exp[1]/sum_zones;
+    results[1] = 0;
+    results[2] = 0;
+    //results[1] = zone_exp[0]/sum_zones;
+    //results[2] = zone_exp[1]/sum_zones;
     // results[3] = zone_exp[2]/sum_zones;
 
     //std::cout << "final results: " << results[0] << " - " << results[1] << " - " << results[2] << " - " << results[3] << std::endl;
