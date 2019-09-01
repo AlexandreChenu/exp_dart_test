@@ -60,6 +60,8 @@ public:
     //INITIALISATION
     Eigen::Vector3d target;
     //target = {8.0, 0.0,0.0}; 
+    _body_contact = false;
+    _on_back = false;
 
     std::vector<double> targ;
     targ = ind.gen().get_target();
@@ -70,7 +72,7 @@ public:
 
     simulate(target, ind); //simulate robot behavior for given nn (ind) and target
 
-    std::vector<double> res(4);
+    std::vector<double> res(3);
     res = get_fit_bd(_traj, target);
 
     this->_value = res[0]; //save fitness value
@@ -79,24 +81,28 @@ public:
 
     // descriptor is the final position of the robot. 
     //std::vector<double> desc(5);
+    std::vector<double> desc(4);
  
-    //desc[0] = res[1];
-    //desc[1] = res[2];
+    desc[0] = res[1];
+    desc[1] = res[2];
     //desc[2] = res[3];
-    //desc[3] = targ[0];
-    //desc[4] = targ[1];
+    desc[2] = targ[0];
+    desc[3] = targ[1];
     //
 
-    std::vector<double> desc(2);
-    desc[0] = targ[0];
-    desc[1] = targ[1];
+    // std::vector<double> desc(2);
+    // desc[0] = targ[0];
+    // desc[1] = targ[1];
 
     this->set_desc(desc); //save behavior descriptor
 
-    //std::cout << "behavior descriptor : " << res[1] << " : " << res[2] << " : " << res[3] << std::endl;
+    if(_body_contact || _on_back){
 
-    //if(desc[0]<0 || desc[0]>1 ||desc[1]<0 || desc[1]>1)
-    //  this->_dead=true; //if something is wrong, we kill this solution. 
+      std::cout << "body contact is " << _body_contact << " and on back is " << _on_back << std::endl; 
+      this->_dead=true; //if something is wrong, we kill this solution.
+    } 
+    else{
+      _not_dead ++;}
     
   }
   
@@ -131,12 +137,15 @@ public:
     simu.add_robot(g_robot);
 
     simu.add_descriptor(std::make_shared<robot_dart::descriptor::HexaDescriptor>(robot_dart::descriptor::HexaDescriptor(simu)));
+    simu.add_descriptor(std::make_shared<robot_dart::descriptor::DutyCycle>(robot_dart::descriptor::DutyCycle(simu)));
   
-    simu.run(5);
+    simu.run(7);
 
     g_robot.reset();
 
-    _traj=std::static_pointer_cast<robot_dart::descriptor::HexaDescriptor>(simu.descriptor(0))->traj;
+    _body_contact = std::static_pointer_cast<robot_dart::descriptor::DutyCycle>(simu.descriptor(1))->body_contact(); //should be descriptor 1
+    _traj = std::static_pointer_cast<robot_dart::descriptor::HexaDescriptor>(simu.descriptor(0))->traj;
+    _on_back = std::static_pointer_cast<robot_dart::descriptor::HexaDescriptor>(simu.descriptor(0))->on_back();
   }
 
 
@@ -149,9 +158,12 @@ public:
     //std::cout << "traj size: " << size << std::endl;
 
     double dist = 0;
-    std::vector<double> zone_exp(3);
-    std::vector<double> res(3);
-    std::vector<double> results(4);
+    //std::vector<double> zone_exp(3);
+    std::vector<double> zone_exp(2);
+    //std::vector<double> res(3);
+    std::vector<double> res(2);
+    //std::vector<double> results(4);
+    std::vector<double> results(3);
 	
     Eigen::VectorXf pos_init = traj[0];
     //std::cout << "init done" << std::endl;
@@ -168,10 +180,10 @@ public:
           dist -= (log(1+i)) + sqrt((target[0]-_traj[i][0])*(target[0]-_traj[i][0]) + (target[1]-_traj[i][1])*(target[1]-_traj[i][1]));}
         
 	//std::cout << "bd" << std::endl;
-        //res = get_zone(pos_init, target, traj[i]); //TODO : check if get zone accepts vector with different sizes
-        //zone_exp[0] = zone_exp[0] + res[0];
-        //zone_exp[1] = zone_exp[1] + res[1];
-        //zone_exp[2] = zone_exp[2] + res[2];
+        res = get_zone(pos_init, target, traj[i]); //TODO : check if get zone accepts vector with different sizes
+        zone_exp[0] = zone_exp[0] + res[0];
+        zone_exp[1] = zone_exp[1] + res[1];
+        // zone_exp[2] = zone_exp[2] + res[2];
       }
     
     //std::cout << "fit 1" << std::endl;
@@ -190,12 +202,12 @@ public:
     //std::cout << "sum results: " << sum_zones << std::endl;
 
     results[0] = dist;
-    //results[1] = zone_exp[0]/sum_zones;
-    //results[2] = zone_exp[1]/sum_zones;
+    results[1] = zone_exp[0]/sum_zones;
+    results[2] = zone_exp[1]/sum_zones;
     //results[3] = zone_exp[2]/sum_zones;
-    results[1] = 0; 
-    results[2] = 0;
-    results[3] = 0;
+    // results[1] = 0; 
+    // results[2] = 0;
+    // results[3] = 0;
 
     //std::cout << "final results: " << results[0] << " - " << results[1] << " - " << results[2] << " - " << results[3] << std::endl;
 
@@ -266,25 +278,25 @@ public:
       
       if (vO2_M_R1[0] < 0){ //negative zone (cf sketch on page 3)
           if (distances[0] < 0.1 || distances[1] < 0.1 || (abs(vMid_M_R1[0]) < 0.1 && abs(vMid_M_R1[1]) < distances[2])) {
-              return {-1, 0, 0};
+              return {-1, 0};
           }
-          if ((distances[0] < 0.2 || distances[1] < 0.2 || (abs(vMid_M_R1[0]) < 0.2 && abs(vMid_M_R1[1]) < distances[2])) && (distances[0] >= 0.1 || distances[1] >= 0.1 || (abs(vMid_M_R1[0]) >= 0.1 && abs(vMid_M_R1[1]) < distances[2]))){
-              return {0, -1, 0};
-          }
+          // if ((distances[0] < 0.2 || distances[1] < 0.2 || (abs(vMid_M_R1[0]) < 0.2 && abs(vMid_M_R1[1]) < distances[2])) && (distances[0] >= 0.1 || distances[1] >= 0.1 || (abs(vMid_M_R1[0]) >= 0.1 && abs(vMid_M_R1[1]) < distances[2]))){
+          //     return {0, -1, 0};
+          // }
           else {
-              return {0,0,-1};
+              return {0, -1};
           }
       }
       
       else{ //positive zone
           if (distances[0] < 0.1 || distances[1] < 0.1 || (abs(vMid_M_R1[0]) < 0.1 && abs(vMid_M_R1[1]) < distances[2])) {
-              return {1, 0, 0};
+              return {1, 0};
           }
-          if ((distances[0] < 0.2 || distances[1] < 0.2 || (abs(vMid_M_R1[0]) < 0.2 && abs(vMid_M_R1[1]) < distances[2])) && (distances[0] >= 0.1 || distances[1] >= 0.1 || (abs(vMid_M_R1[0]) >= 0.1 && abs(vMid_M_R1[1]) < distances[2]))){
-              return {0, 1, 0};
-          }
+          // if ((distances[0] < 0.2 || distances[1] < 0.2 || (abs(vMid_M_R1[0]) < 0.2 && abs(vMid_M_R1[1]) < distances[2])) && (distances[0] >= 0.1 || distances[1] >= 0.1 || (abs(vMid_M_R1[0]) >= 0.1 && abs(vMid_M_R1[1]) < distances[2]))){
+          //     return {0, 1, 0};
+          // }
           else {
-              return {0,0,1};
+              return {0, 1};
           }
       }
   }
@@ -293,6 +305,9 @@ public:
 private:
   std::vector<double> _ctrl;
   std::vector<Eigen::VectorXf> _traj;
+  bool _body_contact;
+  int _not_dead = 0;
+  bool _on_back; 
 
   
 };

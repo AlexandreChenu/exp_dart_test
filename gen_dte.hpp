@@ -68,14 +68,20 @@ namespace sferes{
       void random() {
         //std::cout << "START RANDOM" <<std::endl;
         sferes::gen::DnnFF<N, C, Params>::random();
-        //std::cout << "DnnFF random done" <<std::endl;
-        //BOOST_FOREACH(double &v, this->_targ) v = misc::rand<double>();
-        double radius = (((double) rand() / (RAND_MAX))-0.5); //TODO: adapt to n dimensions
-        double theta = 2*M_PI*(((double) rand() / (RAND_MAX))-0.5);
-        //std::cout << "compute rad and theta" << std::endl;
-        _targ[0] = radius*cos(theta);
-        _targ[1] = radius*sin(theta);
-        _targ[2] = 0;
+
+        bool accepted = false;
+
+        while (accepted == false){
+          double x = ((double) rand() / (RAND_MAX)) - 0.5;
+          double y = ((double) rand() / (RAND_MAX)) - 0.5;
+
+          if (sqrt(x*x + y*y) < 0.75){
+              _targ[0] = x;
+              _targ[1] = y;
+              _targ[2] = 0;
+              accepted = true;
+          }
+        }
         //std::cout << "END RANDOM" <<std::endl;
       }
 
@@ -91,21 +97,21 @@ namespace sferes{
         //std::cout << "START MUTATE" <<std::endl;
          sferes::gen::DnnFF<N, C, Params>::mutate();
 
-         for (int i = 0; i < 2; i++){ //polynomial mutation for target 
-          if (misc::rand<float>() < Params::evo_float::mutation_rate){
-            SFERES_CONST float eta_m = Params::evo_float::eta_m;
-            assert(eta_m != -1.0f);
-            float ri = misc::rand<float>();
-            float delta_i = ri < 0.5 ?
-                          pow(2.0 * ri, 1.0 / (eta_m + 1.0)) - 1.0 :
-                          1 - pow(2.0 * (1.0 - ri), 1.0 / (eta_m + 1.0));
-            assert(!std::isnan(delta_i));
-            assert(!std::isinf(delta_i));
-            _targ[i] = _targ[i] + delta_i;
-            misc::put_in_range(_targ[i], 0.0f, 1.0f);
-          }
-       }
-        _targ[2] = 0;
+       //   for (int i = 0; i < 2; i++){ //polynomial mutation for target 
+       //    if (misc::rand<float>() < Params::evo_float::mutation_rate){
+       //      SFERES_CONST float eta_m = Params::evo_float::eta_m;
+       //      assert(eta_m != -1.0f);
+       //      float ri = misc::rand<float>();
+       //      float delta_i = ri < 0.5 ?
+       //                    pow(2.0 * ri, 1.0 / (eta_m + 1.0)) - 1.0 :
+       //                    1 - pow(2.0 * (1.0 - ri), 1.0 / (eta_m + 1.0));
+       //      assert(!std::isnan(delta_i));
+       //      assert(!std::isinf(delta_i));
+       //      _targ[i] = _targ[i] + delta_i;
+       //      misc::put_in_range(_targ[i], 0.0f, 1.0f);
+       //    }
+       // }
+       //  _targ[2] = 0;
        //std::cout << "END MUTATE" <<std::endl;
      }
 

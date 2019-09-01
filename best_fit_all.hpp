@@ -98,12 +98,12 @@ namespace sferes {
 
         for( auto it = ea.pop().begin(); it != ea.pop().end(); ++it) {
 
-          std::vector<double> results(6);
+          std::vector<double> results(5);
           results = test_model(**it); //simulate and obtain fitness and behavior descriptors
 
-          std::cout << "test unitaire - fitness: " << results[0] << " behavior descriptor: " << results[1] << " " << results[2] << " " << results[3] << " target: " << results[4] << " " << results[5] << std::endl;
+          std::cout << "test unitaire - fitness: " << results[0] << " behavior descriptor: " << results[1] << " " << results[2] << " " << results[3] << " target: " << results[4]  << std::endl;
 
-          dict_file << "final_model_" + std::to_string(cnt) << "  " << results[0] << "  " << results[1] << "  " << results[2] << "  " << results[3] << " " << results[4] << " " << results[5] <<  "\n"; //save simulation results in dictionary file
+          dict_file << "final_model_" + std::to_string(cnt) << "  " << results[0] << "  " << results[1] << "  " << results[2] << "  " << results[3] << " " << results[4]  <<  "\n"; //save simulation results in dictionary file
 
           typedef boost::archive::binary_oarchive oa_t;
           const std::string fmodel = ea.res_dir() + "/final_model_" + std::to_string(cnt) + ".bin";
@@ -126,8 +126,8 @@ namespace sferes {
         std::cout << std::to_string(cnt) + " models saved" << std::endl;
       }
 
-      template<typename T>
-      std::vector<double> test_model(T& model){
+template<typename T>
+std::vector<double> test_model(T& model){
 		      
 	std::vector<double> targ = model.gen().get_target(); // TODO: test type
 	Eigen::Vector3d target;
@@ -146,7 +146,7 @@ namespace sferes {
 	outputs[4] = target[0];
 	outputs[5] = target[1];
 
-      	return outputs;}
+  return outputs;}
 
       template<typename Model>
       std::vector<double> simulate(Eigen::Vector3d& target, Model& model)
@@ -195,9 +195,9 @@ namespace sferes {
 
 
     double dist = 0;
-    std::vector<double> zone_exp(3);
-    std::vector<double> res(3);
-    std::vector<double> results(4);
+    std::vector<double> zone_exp(2);
+    std::vector<double> res(2);
+    std::vector<double> results(3);
 
     std::vector<Eigen::VectorXf> _traj(traj.begin(), traj.end());
 
@@ -219,7 +219,7 @@ namespace sferes {
         res = get_zone(pos_init, target, traj[i]); //TODO : check if get zone accepts vector with different sizes
         zone_exp[0] = zone_exp[0] + res[0];
         zone_exp[1] = zone_exp[1] + res[1];
-        zone_exp[2] = zone_exp[2] + res[2];
+        // zone_exp[2] = zone_exp[2] + res[2];
       }
 //std::cout << "fit 1" << std::endl;
     if (sqrt((target[0]-_traj.back()[0])*(target[0]-_traj.back()[0]) + (target[1]-_traj.back()[1])*(target[1]-_traj.back()[1])) < 0.05){
@@ -239,7 +239,7 @@ namespace sferes {
     results[0] = dist;
     results[1] = zone_exp[0]/sum_zones;
     results[2] = zone_exp[1]/sum_zones;
-    results[3] = zone_exp[2]/sum_zones;
+    // results[3] = zone_exp[2]/sum_zones;
 
     //std::cout << "final results: " << results[0] << " - " << results[1] << " - " << results[2] << " - " << results[3] << std::endl;
 
@@ -310,26 +310,26 @@ std::vector<double> get_zone(Eigen::VectorXf start, Eigen::Vector3d target, Eige
 
       if (vO2_M_R1[0] < 0){ //negative zone (cf sketch on page 3)
           if (distances[0] < 0.1 || distances[1] < 0.1 || (abs(vMid_M_R1[0]) < 0.1 && abs(vMid_M_R1[1]) < distances[2])) {
-              return {-1, 0, 0};
+              return {-1, 0};
           }
-          if ((distances[0] < 0.2 || distances[1] < 0.2 || (abs(vMid_M_R1[0]) < 0.2 && abs(vMid_M_R1[1]) < distances[2])) && (distances[0] >= 0.1 || distances[1] >= 0.1 || (abs(vMid_M_R1[0]) >= 0.1 && abs(vMid_M_R1[1]) < distances[2]))){
-              return {0, -1, 0};
-          }
+          // if ((distances[0] < 0.2 || distances[1] < 0.2 || (abs(vMid_M_R1[0]) < 0.2 && abs(vMid_M_R1[1]) < distances[2])) && (distances[0] >= 0.1 || distances[1] >= 0.1 || (abs(vMid_M_R1[0]) >= 0.1 && abs(vMid_M_R1[1]) < distances[2]))){
+          //     return {0, -1, 0};
+          // }
           else {
-              return {0,0,-1};
+              return {0,-1};
           }
 
      }
 
       else{ //positive zone
           if (distances[0] < 0.1 || distances[1] < 0.1 || (abs(vMid_M_R1[0]) < 0.1 && abs(vMid_M_R1[1]) < distances[2])) {
-              return {1, 0, 0};
+              return {1, 0};
           }
-          if ((distances[0] < 0.2 || distances[1] < 0.2 || (abs(vMid_M_R1[0]) < 0.2 && abs(vMid_M_R1[1]) < distances[2])) && (distances[0] >= 0.1 || distances[1] >= 0.1 || (abs(vMid_M_R1[0]) >= 0.1 && abs(vMid_M_R1[1]) < distances[2]))){
-              return {0, 1, 0};
-          }
+          // if ((distances[0] < 0.2 || distances[1] < 0.2 || (abs(vMid_M_R1[0]) < 0.2 && abs(vMid_M_R1[1]) < distances[2])) && (distances[0] >= 0.1 || distances[1] >= 0.1 || (abs(vMid_M_R1[0]) >= 0.1 && abs(vMid_M_R1[1]) < distances[2]))){
+          //     return {0, 1, 0};
+          // }
           else {
-              return {0,0,1};
+              return {0,1};
           }
       }
   }
