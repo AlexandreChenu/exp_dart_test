@@ -69,21 +69,21 @@ namespace sferes{
         //std::cout << "START RANDOM" <<std::endl;
         sferes::gen::Dnn<N, C, Params>::random();
 
-        bool accepted = false;
+        //bool accepted = false;
 
-        while (accepted == false){
-          double x = ((double) rand() / (RAND_MAX)) - 0.5;
-          double y = ((double) rand() / (RAND_MAX)) - 0.5;
+        //while (accepted == false){
+          double x = 0.3*((double) rand() / (RAND_MAX)) - 0.5;
+          double y = 0.3*((double) rand() / (RAND_MAX)) - 0.5;
 
-          if (sqrt(x*x + y*y) < 0.75){
-              _targ[0] = x;
-              _targ[1] = y;
-              _targ[2] = 0;
-              accepted = true;
-          }
+          //if (sqrt(x*x + y*y) < 0.75){
+          _targ[0] = x;
+          _targ[1] = y;
+          _targ[2] = 0;
+          //    accepted = true;
+          //}
         }
         //std::cout << "END RANDOM" <<std::endl;
-      }
+ 
 
       void cross(const sferes::gen::Dnn<N, C, Params>& o, sferes::gen::Dnn<N, C, Params>& c1, sferes::gen::Dnn<N, C, Params>& c2) {
         //std::cout << "START CROSS" <<std::endl;
@@ -97,21 +97,24 @@ namespace sferes{
         //std::cout << "START MUTATE" <<std::endl;
          sferes::gen::Dnn<N, C, Params>::mutate();
 
-       //   for (int i = 0; i < 2; i++){ //polynomial mutation for target 
-       //    if (misc::rand<float>() < Params::evo_float::mutation_rate){
-       //      SFERES_CONST float eta_m = Params::evo_float::eta_m;
-       //      assert(eta_m != -1.0f);
-       //      float ri = misc::rand<float>();
-       //      float delta_i = ri < 0.5 ?
-       //                    pow(2.0 * ri, 1.0 / (eta_m + 1.0)) - 1.0 :
-       //                    1 - pow(2.0 * (1.0 - ri), 1.0 / (eta_m + 1.0));
-       //      assert(!std::isnan(delta_i));
-       //      assert(!std::isinf(delta_i));
-       //      _targ[i] = _targ[i] + delta_i;
-       //      misc::put_in_range(_targ[i], 0.0f, 1.0f);
-       //    }
-       // }
-       //  _targ[2] = 0;
+          for (int i = 0; i < 2; i++){ //polynomial mutation for target 
+           if (misc::rand<float>() < Params::evo_float::mutation_rate){
+             SFERES_CONST float eta_m = Params::evo_float::eta_m;
+             assert(eta_m != -1.0f);
+             float ri = misc::rand<float>();
+             float delta_i = ri < 0.5 ?
+                           pow(2.0 * ri, 1.0 / (eta_m + 1.0)) - 1.0 :
+                           1 - pow(2.0 * (1.0 - ri), 1.0 / (eta_m + 1.0));
+             assert(!std::isnan(delta_i));
+             assert(!std::isinf(delta_i));
+             _targ[i] = _targ[i] + delta_i;
+             if (_targ[i] < 0) 
+	     	misc::put_in_range(_targ[i], -0.5f, -0.2f);
+	     if (_targ[i] > 0)
+		misc::put_in_range(_targ[i], 0.2f, 0.5f);
+           }
+        }
+         _targ[2] = 0;
        //std::cout << "END MUTATE" <<std::endl;
      }
 
@@ -122,9 +125,9 @@ namespace sferes{
 
     private: 
       
-      double _x = ((double) rand() / (RAND_MAX)-0.5);
-      double _y = (((double) rand() / (RAND_MAX))-0.5);
-      std::vector<double> _targ = {_x,_y,0};
+      double _x;
+      double _y;
+      std::vector<double> _targ = {-0.5,0.5,0.0};
 
 
 
